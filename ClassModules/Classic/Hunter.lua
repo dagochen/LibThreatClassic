@@ -10,15 +10,13 @@ if select(2, _G.UnitClass("player")) ~= "HUNTER" then return end
 local _G = _G
 local Hunter = ThreatLib:GetOrCreateModule("Player")
 
-local distractingShotFactor = 600 / 60
-
 local threatTable = {
 	["DistractingShot"] = {
-		[20736] = distractingShotFactor * 12,
-		[14274] = distractingShotFactor * 20,
-		[15629] = distractingShotFactor * 30,
-		[15630] = distractingShotFactor * 40,
-		[15631] = distractingShotFactor * 50,
+		[20736] = 110,
+		[14274] = 160,
+		[15629] = 250,
+		[15630] = 350,
+		[15631] = 465,
 		[15632] = 600,
 	},
 	["Disengage"] = {
@@ -27,6 +25,23 @@ local threatTable = {
 		[14273] = -405,
 	}
 }
+
+local threatPerLevelTable = {
+	["DistractingShot"] = {
+		[20736] = 1.5,
+		[14274] = 2.0,
+		[15629] = 2.5,
+		[15630] = 3.0,
+		[15631] = 3.5,
+		[15632] = 4.0,
+	},
+	["Disengage"] = {
+		[781] = -3.0,
+		[14272] = -3.0,
+		[14273] = -3.0,
+	}
+}
+
 
 function Hunter:ClassInit()
 	for k, v in pairs(threatTable["DistractingShot"]) do
@@ -47,13 +62,13 @@ function Hunter:ClassEnable()
 end
 
 function Hunter:DistractingShot(spellID, target)
-	local amt = threatTable["DistractingShot"][spellID]
+	local amt = threatTable["DistractingShot"][spellID] + (UnitLevel("Player") * threatPerLevelTable["DistractingShot"][spellID])
 	self:AddTargetThreat(target, amt * self:threatMods())
 end
 
 function Hunter:Disengage(spellID, target)
 	ThreatLib:Debug("Disengage caught, %s", spellID)
-	local amt = threatTable["Disengage"][spellID]
+	local amt = threatTable["Disengage"][spellID] + (UnitLevel("Player") * threatPerLevelTable["Disengage"][spellID])
 	self:AddTargetThreat(target, amt * self:threatMods())
 end
 
